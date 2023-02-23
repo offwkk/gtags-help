@@ -18,7 +18,7 @@
       "activitybar": [
         {
           "id": "global-result",
-          "title": "global result", 
+          "title": "global result",
           "icon": "resources/result-icon.png"
         }
       ]
