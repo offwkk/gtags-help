@@ -43,6 +43,10 @@
       {
         "command": "gtags-help.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "gtags-help.definition",
+        "title": "find Global"
       }
     ]
   },

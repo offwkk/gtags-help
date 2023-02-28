@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { commands, ExtensionContext, TreeItem, TreeItemCollapsibleState, window } from 'vscode';
+import { findGlobal } from './utils';
 
 let definitionList: GlobalResult[] = [];
 let referenceList: GlobalResult[] = [];
@@ -23,6 +24,8 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello World from gtags-help!');
 	});
+
+	commands.registerCommand('gtags-help.definition', findGlobal);
 
 	context.subscriptions.push(disposable);
 

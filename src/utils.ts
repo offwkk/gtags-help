@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as global from "./global";
 import { exec, ExecException } from "child_process";
 
 export function getWorkspaceRootPath(): string {
@@ -22,24 +23,45 @@ export async function execCmd(command: string): Promise<string> {
     });
 }
 
-export function parseResult(result: string): any {
-    if (result == null || result == "")
-        return null;
-
-    const lines = result.split(/ +/);
-    const reg = /\r?\n/;
+export function parseResult(result: string): Array<{symbol: string, line: number, path: string } | undefined>  {
+    const lines = result.trimEnd().split('\n');
 
     return lines.map((line: string) => {
-        let groups = reg.exec(line);
-        if (groups !== null) {
-            return { "symbol": groups[1], "line": groups[2], "path": groups[3]};
-        }
+        if (line == null)
+            return;
+
+        let groups = line.split(/ +/);
+        return { "symbol": groups[0], "line": Number(groups[1]), "path": groups[2]};
     });
+
 }
 
-export async function findGlobal(document: vscode.TextDocument, position: vscode.Position) {
-    let global: Global[];
-    const target = document.getWordRangeAtPosition(position);
-    let definitionResult = parseResult(await execCmd('${globalCmd -dx ${symbol}'));
-    let referenceResult = parseResult(await execCmd('${globalCmd} -rx ${symbol}'));
+export async function findGlobal(position: vscode.Position) {
+    let globalCmd = global.getGlobal();
+    let definitionGlobal: global.Global[] = [];
+    let referenceGlobal: global.Global[] = [];
+
+    const editor = vscode.window.activeTextEditor!;
+
+    position = editor.selection.active;
+    let wordRange = editor.document.getWordRangeAtPosition(position, /\S+/);
+    let word = editor.document.getText(wordRange)
+    word = word.substring(0, word.indexOf('('));
+
+    let definitionResult = parseResult(await execCmd(globalCmd + " -dx " + word));
+    let referenceResult = parseResult(await execCmd(globalCmd + " -rx " + word));
+
+    for (let i = 0; i < definitionResult.length; i++) {
+        definitionGlobal[i] = new global.Global(
+            definitionResult[i]?.symbol!, definitionResult[i]?.line!, definitionResult[i]?.path!);
+
+        console.log(definitionGlobal[i]);
+    }
+
+    for (let i = 0; i < referenceResult.length; i++) {
+        referenceGlobal[i] = new global.Global(
+            referenceResult[i]?.symbol!, referenceResult[i]?.line!, referenceResult[i]?.path!);
+
+        console.log(referenceGlobal[i]);
+    }
 }

@@ -23,7 +23,6 @@ export class Global {
         return this.filePath.split('/').slice(-1)[0];
     }
 
-
     public get fullFilePath(): string {
         return `${Utils.getWorkspaceRootPath()}/${this.filePath}`;
     }
