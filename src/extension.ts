@@ -2,11 +2,12 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { commands, ExtensionContext, TreeItem, TreeItemCollapsibleState, window } from 'vscode';
-import { findGlobal } from './utils';
+import * as global from "./global";
+import { findDefinition, findReference } from './utils';
 
-let definitionList: GlobalResult[] = [];
-let referenceList: GlobalResult[] = [];
-let historyList: GlobalResult[] = [];
+let definitionList: global.Global[] = [];
+let referenceList: global.Global[] = [];
+let historyList: global.Global[] = [];
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -27,6 +28,24 @@ export function activate(context: vscode.ExtensionContext) {
 
 	commands.registerCommand('gtags-help.definition', findGlobal);
 
+	async function findGlobal() {
+		definitionList = [];
+		referenceList = [];
+
+		let definitionResult = await findDefinition();
+		let referenceResult = await findReference();
+
+		for (let i = 0; i < definitionResult.length; i++) {
+			definitionList.push(definitionResult[i]);
+		}
+
+		for (let i = 0; i < referenceResult.length; i++) {
+			referenceList.push(referenceResult[i]);
+		}
+
+		createTreeView();
+	}
+
 	context.subscriptions.push(disposable);
 
 	function createTreeView() {
@@ -35,11 +54,11 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 		vscode.window.createTreeView('result.reference', {
-			treeDataProvider: new DefinitionProvider()
+			treeDataProvider: new ReferenceProvider()
 		});
 
 		vscode.window.createTreeView('result.history', {
-			treeDataProvider: new DefinitionProvider()
+			treeDataProvider: new HistoryProvider()
 		});
 	}
 }
@@ -47,51 +66,41 @@ export function activate(context: vscode.ExtensionContext) {
 // This method is called when your extension is deactivated
 export function deactivate() {}
 
-export class DefinitionProvider implements vscode.TreeDataProvider<GlobalResult> {
+export class DefinitionProvider implements vscode.TreeDataProvider<global.Global> {
 	constructor() {}
 
-	getTreeItem(element: GlobalResult): vscode.TreeItem | Thenable<vscode.TreeItem> {
+	getTreeItem(element: global.Global): vscode.TreeItem | Thenable<vscode.TreeItem> {
 		return element;
 	}
 
-	getChildren(element?: any): vscode.ProviderResult<GlobalResult[]> {
+	getChildren(element?: any): vscode.ProviderResult<global.Global[]> {
 		const definition = Object.assign([], definitionList);
-		return Promise.resolve(definition.reverse());
+		return Promise.resolve(definition);
 	}
 }
 
-export class ReferenceProvider implements vscode.TreeDataProvider<GlobalResult> {
+export class ReferenceProvider implements vscode.TreeDataProvider<global.Global> {
 	constructor() {}
 
-	getTreeItem(element: GlobalResult): vscode.TreeItem | Thenable<vscode.TreeItem> {
+	getTreeItem(element: global.Global): vscode.TreeItem | Thenable<vscode.TreeItem> {
 		return element;
 	}
 
-	getChildren(element?: any): vscode.ProviderResult<GlobalResult[]> {
+	getChildren(element?: any): vscode.ProviderResult<global.Global[]> {
 		const reference = Object.assign([], referenceList);
-		return Promise.resolve(reference.reverse());
+		return Promise.resolve(reference);
 	}
 }
 
-export class HistoryProvider implements vscode.TreeDataProvider<GlobalResult> {
+export class HistoryProvider implements vscode.TreeDataProvider<global.Global> {
 	constructor() {}
 
-	getTreeItem(element: GlobalResult): vscode.TreeItem | Thenable<vscode.TreeItem> {
+	getTreeItem(element: global.Global): vscode.TreeItem | Thenable<vscode.TreeItem> {
 		return element;
 	}
 
-	getChildren(element?: any): vscode.ProviderResult<GlobalResult[]> {
+	getChildren(element?: any): vscode.ProviderResult<global.Global[]> {
 		const history = Object.assign([], historyList);
 		return Promise.resolve(history.reverse());
-	}
-}
-
-class GlobalResult extends TreeItem {
-	constructor(
-		public readonly label: string,
-		public readonly collapsibleState: vscode.TreeItemCollapsibleState
-	) {
-		super(label, collapsibleState);
-		this.contextValue = "globalResultList:";
 	}
 }

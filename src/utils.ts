@@ -2,6 +2,10 @@ import * as vscode from "vscode";
 import * as global from "./global";
 import { exec, ExecException } from "child_process";
 
+let definitionList: global.Global[] = [];
+let referenceList: global.Global[] = [];
+let historyList: global.Global[] = [];
+
 export function getWorkspaceRootPath(): string {
     return vscode.workspace.workspaceFolders !==
         undefined ? vscode.workspace.workspaceFolders[0].uri.fsPath : '';
@@ -36,32 +40,42 @@ export function parseResult(result: string): Array<{symbol: string, line: number
 
 }
 
-export async function findGlobal(position: vscode.Position) {
+export async function findDefinition(): Promise<global.Global[]> {
     let globalCmd = global.getGlobal();
     let definitionGlobal: global.Global[] = [];
-    let referenceGlobal: global.Global[] = [];
 
     const editor = vscode.window.activeTextEditor!;
+    const position: vscode.Position = editor.selection.active;
 
-    position = editor.selection.active;
-    let wordRange = editor.document.getWordRangeAtPosition(position, /\S+/);
+    let wordRange = editor.document.getWordRangeAtPosition(position, /\w+/);
     let word = editor.document.getText(wordRange)
-    word = word.substring(0, word.indexOf('('));
 
-    let definitionResult = parseResult(await execCmd(globalCmd + " -dx " + word));
-    let referenceResult = parseResult(await execCmd(globalCmd + " -rx " + word));
+    let definitionResult = parseResult(await execCmd(globalCmd + " -x " + word));
 
     for (let i = 0; i < definitionResult.length; i++) {
         definitionGlobal[i] = new global.Global(
             definitionResult[i]?.symbol!, definitionResult[i]?.line!, definitionResult[i]?.path!);
-
-        console.log(definitionGlobal[i]);
     }
+
+    return definitionGlobal;
+}
+
+export async function findReference(): Promise<global.Global[]> {
+    let globalCmd = global.getGlobal();
+    let referenceGlobal: global.Global[] = [];
+
+    const editor = vscode.window.activeTextEditor!;
+    const position: vscode.Position = editor.selection.active;
+
+    let wordRange = editor.document.getWordRangeAtPosition(position, /\w+/);
+    let word = editor.document.getText(wordRange)
+
+    let referenceResult = parseResult(await execCmd(globalCmd + " -rx " + word));
 
     for (let i = 0; i < referenceResult.length; i++) {
         referenceGlobal[i] = new global.Global(
             referenceResult[i]?.symbol!, referenceResult[i]?.line!, referenceResult[i]?.path!);
-
-        console.log(referenceGlobal[i]);
     }
+
+    return referenceGlobal;
 }
