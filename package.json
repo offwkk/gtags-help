@@ -45,7 +45,7 @@
         "title": "Hello World"
       },
       {
-        "command": "gtags-help.definition",
+        "command": "gtags-help.find",
         "title": "find Global"
       }
     ]

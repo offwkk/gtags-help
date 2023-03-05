@@ -1,12 +1,12 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { commands, ExtensionContext, TreeItem, TreeItemCollapsibleState, window } from 'vscode';
 import * as global from "./global";
-import { findDefinition, findReference } from './utils';
+import { findDefinition, findReference, getWorkspaceRootPath } from './utils';
 
-let definitionList: global.Global[] = [];
-let referenceList: global.Global[] = [];
+// let definitionList: global.Global[] = [];
+let definitionList: global_result[] = [];
+let referenceList: global_result[] = [];
 let historyList: global.Global[] = [];
 
 // This method is called when your extension is activated
@@ -26,7 +26,8 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Hello World from gtags-help!');
 	});
 
-	commands.registerCommand('gtags-help.definition', findGlobal);
+	vscode.commands.registerCommand('gtags-help.find', findGlobal);
+	vscode.commands.registerCommand("gtags-help.move", moveGlobal);
 
 	async function findGlobal() {
 		definitionList = [];
@@ -36,11 +37,27 @@ export function activate(context: vscode.ExtensionContext) {
 		let referenceResult = await findReference();
 
 		for (let i = 0; i < definitionResult.length; i++) {
-			definitionList.push(definitionResult[i]);
+			const item = new global_result(definitionResult[i].description,
+				definitionResult[i].symbol, definitionResult[i].line,
+				definitionResult[i].path);
+			item.command = {
+				command: "gtags-help.move",
+				title: "move Global",
+				arguments: [item]
+			}
+			definitionList.push(item);
 		}
 
 		for (let i = 0; i < referenceResult.length; i++) {
-			referenceList.push(referenceResult[i]);
+			const item = new global_result(referenceResult[i].description,
+				referenceResult[i].symbol, referenceResult[i].line,
+				referenceResult[i].path);
+			item.command = {
+				command: "gtags-help.move",
+				title: "move Global",
+				arguments: [item]
+			}
+			referenceList.push(item);
 		}
 
 		createTreeView();
@@ -66,18 +83,19 @@ export function activate(context: vscode.ExtensionContext) {
 // This method is called when your extension is deactivated
 export function deactivate() {}
 
-export class DefinitionProvider implements vscode.TreeDataProvider<global.Global> {
+export class DefinitionProvider implements vscode.TreeDataProvider<global_result> {
 	constructor() {}
 
-	getTreeItem(element: global.Global): vscode.TreeItem | Thenable<vscode.TreeItem> {
+	getTreeItem(element: global_result): vscode.TreeItem | Thenable<vscode.TreeItem> {
 		return element;
 	}
 
-	getChildren(element?: any): vscode.ProviderResult<global.Global[]> {
+	getChildren(element?: global_result): vscode.ProviderResult<global_result[]> {
 		const definition = Object.assign([], definitionList);
 		return Promise.resolve(definition);
 	}
 }
+
 
 export class ReferenceProvider implements vscode.TreeDataProvider<global.Global> {
 	constructor() {}
@@ -102,5 +120,34 @@ export class HistoryProvider implements vscode.TreeDataProvider<global.Global> {
 	getChildren(element?: any): vscode.ProviderResult<global.Global[]> {
 		const history = Object.assign([], historyList);
 		return Promise.resolve(history.reverse());
+	}
+}
+
+function moveGlobal(item: global_result) {
+	if (item.symbol === undefined)
+		return;
+
+	let path = getWorkspaceRootPath();
+	path += "/" + item.path;
+
+	vscode.workspace.openTextDocument(path).then(document => {
+		vscode.window.showTextDocument(document).then(editor => {
+			var pos = new vscode.Position(item.line! - 1, 0);
+			editor.selection = new vscode.Selection(pos, pos);
+			editor.revealRange(new vscode.Range(pos, pos));
+		});
+	});
+}
+
+class global_result extends vscode.TreeItem {
+	readonly symbol: string | undefined;
+	readonly line: number | undefined;
+	readonly path: string | undefined;
+
+	constructor(label: string, symbol: string, line: number, path: string) {
+		super(label);
+		this.symbol = symbol;
+		this.line = line;
+		this.path = path;
 	}
 }

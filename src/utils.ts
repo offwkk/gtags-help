@@ -2,10 +2,6 @@ import * as vscode from "vscode";
 import * as global from "./global";
 import { exec, ExecException } from "child_process";
 
-let definitionList: global.Global[] = [];
-let referenceList: global.Global[] = [];
-let historyList: global.Global[] = [];
-
 export function getWorkspaceRootPath(): string {
     return vscode.workspace.workspaceFolders !==
         undefined ? vscode.workspace.workspaceFolders[0].uri.fsPath : '';
