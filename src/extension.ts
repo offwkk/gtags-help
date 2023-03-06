@@ -2,12 +2,12 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as global from "./global";
-import { findDefinition, findReference, getWorkspaceRootPath } from './utils';
+import { moveGlobal, findDefinition, findReference, moveHistoryGlobal } from './utils';
 
 // let definitionList: global.Global[] = [];
-let definitionList: global_result[] = [];
-let referenceList: global_result[] = [];
-let historyList: global.Global[] = [];
+let definitionList: global.GlobalResult[] = [];
+let referenceList: global.GlobalResult[] = [];
+let historyList: global.GlobalResult[] = [];
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -27,70 +27,69 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	vscode.commands.registerCommand('gtags-help.find', findGlobal);
-	vscode.commands.registerCommand("gtags-help.move", moveGlobal);
-
-	async function findGlobal() {
-		definitionList = [];
-		referenceList = [];
-
-		let definitionResult = await findDefinition();
-		let referenceResult = await findReference();
-
-		for (let i = 0; i < definitionResult.length; i++) {
-			const item = new global_result(definitionResult[i].description,
-				definitionResult[i].symbol, definitionResult[i].line,
-				definitionResult[i].path);
-			item.command = {
-				command: "gtags-help.move",
-				title: "move Global",
-				arguments: [item]
-			}
-			definitionList.push(item);
-		}
-
-		for (let i = 0; i < referenceResult.length; i++) {
-			const item = new global_result(referenceResult[i].description,
-				referenceResult[i].symbol, referenceResult[i].line,
-				referenceResult[i].path);
-			item.command = {
-				command: "gtags-help.move",
-				title: "move Global",
-				arguments: [item]
-			}
-			referenceList.push(item);
-		}
-
-		createTreeView();
-	}
+	vscode.commands.registerCommand('gtags-help.move', moveGlobal);
+	vscode.commands.registerCommand('gtags-help.history', moveHistoryGlobal);
 
 	context.subscriptions.push(disposable);
+}
 
-	function createTreeView() {
-		vscode.window.createTreeView('result.definition', {
-			treeDataProvider: new DefinitionProvider()
-		});
+export async function findGlobal(historyResult?: string) {
+	definitionList = [];
+	referenceList = [];
 
-		vscode.window.createTreeView('result.reference', {
-			treeDataProvider: new ReferenceProvider()
-		});
+	let definitionResult = await findDefinition(historyResult);
+	let referenceResult = await findReference(historyResult);
 
-		vscode.window.createTreeView('result.history', {
-			treeDataProvider: new HistoryProvider()
-		});
+	for (let i = 0; i < definitionResult.length; i++) {
+		const item = new global.GlobalResult(definitionResult[i].description,
+			definitionResult[i].symbol, definitionResult[i].line,
+			definitionResult[i].path, 'gtags-help.move');
+		definitionList.push(item);
 	}
+
+	for (let i = 0; i < referenceResult.length; i++) {
+		const item = new global.GlobalResult(referenceResult[i].description,
+			referenceResult[i].symbol, referenceResult[i].line,
+			referenceResult[i].path, 'gtags-help.move');
+		referenceList.push(item);
+	}
+
+	const item = new global.GlobalResult(definitionResult[0].symbol,
+		definitionResult[0].symbol, definitionResult[0].line,
+		definitionResult[0].path, 'gtags-help.history');
+
+	if (historyList.find(history => history.label === definitionResult[0].symbol))
+		historyList = historyList.filter(history => history.label !== definitionResult[0].symbol);
+	historyList.push(item);
+
+	createTreeView();
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
 
-export class DefinitionProvider implements vscode.TreeDataProvider<global_result> {
+export function createTreeView() {
+	vscode.window.createTreeView('result.definition', {
+		treeDataProvider: new DefinitionProvider()
+	});
+
+	vscode.window.createTreeView('result.reference', {
+		treeDataProvider: new ReferenceProvider()
+	});
+
+	vscode.window.createTreeView('result.history', {
+		treeDataProvider: new HistoryProvider()
+	});
+}
+
+export class DefinitionProvider implements vscode.TreeDataProvider<global.GlobalResult> {
 	constructor() {}
 
-	getTreeItem(element: global_result): vscode.TreeItem | Thenable<vscode.TreeItem> {
+	getTreeItem(element: global.GlobalResult): vscode.TreeItem | Thenable<vscode.TreeItem> {
 		return element;
 	}
 
-	getChildren(element?: global_result): vscode.ProviderResult<global_result[]> {
+	getChildren(element?: global.GlobalResult): vscode.ProviderResult<global.GlobalResult[]> {
 		const definition = Object.assign([], definitionList);
 		return Promise.resolve(definition);
 	}
@@ -120,34 +119,5 @@ export class HistoryProvider implements vscode.TreeDataProvider<global.Global> {
 	getChildren(element?: any): vscode.ProviderResult<global.Global[]> {
 		const history = Object.assign([], historyList);
 		return Promise.resolve(history.reverse());
-	}
-}
-
-function moveGlobal(item: global_result) {
-	if (item.symbol === undefined)
-		return;
-
-	let path = getWorkspaceRootPath();
-	path += "/" + item.path;
-
-	vscode.workspace.openTextDocument(path).then(document => {
-		vscode.window.showTextDocument(document).then(editor => {
-			var pos = new vscode.Position(item.line! - 1, 0);
-			editor.selection = new vscode.Selection(pos, pos);
-			editor.revealRange(new vscode.Range(pos, pos));
-		});
-	});
-}
-
-class global_result extends vscode.TreeItem {
-	readonly symbol: string | undefined;
-	readonly line: number | undefined;
-	readonly path: string | undefined;
-
-	constructor(label: string, symbol: string, line: number, path: string) {
-		super(label);
-		this.symbol = symbol;
-		this.line = line;
-		this.path = path;
 	}
 }
