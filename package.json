@@ -48,7 +48,18 @@
         "command": "gtags-help.find",
         "title": "find Global"
       }
-    ]
+    ],
+    "configuration": [
+      {
+        "title": "gtags max history",
+        "properties": {
+          "gtags-help.maxHistory": {
+            "type": "integer",
+            "default": 50,
+            "description": "Maximum number of recent gtags history"
+          }
+        }
+      }]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

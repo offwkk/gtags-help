@@ -8,10 +8,22 @@ import { moveGlobal, findDefinition, findReference, moveHistoryGlobal } from './
 let definitionList: global.GlobalResult[] = [];
 let referenceList: global.GlobalResult[] = [];
 let historyList: global.GlobalResult[] = [];
+let maxHistory: number;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+
+	const config = vscode.workspace.getConfiguration("gtags-help");
+	maxHistory = config.get('maxHistory', 50);
+
+	vscode.workspace.onDidChangeConfiguration(event => {
+		let affected = event.affectsConfiguration("gtags-help.maxHistory");
+		if (affected) {
+			const config = vscode.workspace.getConfiguration("gtags-help");
+			maxHistory = config.get('maxHistory', 50);
+		}
+	});
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
@@ -61,6 +73,10 @@ export async function findGlobal(historyResult?: string) {
 	if (historyList.find(history => history.label === definitionResult[0].symbol))
 		historyList = historyList.filter(history => history.label !== definitionResult[0].symbol);
 	historyList.push(item);
+
+	if (maxHistory > 0) {
+		historyList = historyList.reverse().slice(0, maxHistory).reverse();
+	}
 
 	createTreeView();
 }
