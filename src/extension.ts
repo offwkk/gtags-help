@@ -34,10 +34,10 @@ export async function searchGtags(historyResult?: string) {
 	let referenceResult = await utils.findReference(historyResult);
 
 	for (let i = 0; i < definitionResult.length; i++) {
-		const item = new global.GlobalResult(definitionResult[i].description,
+		const gtags = new global.GlobalResult(definitionResult[i].description,
 			definitionResult[i].symbol, definitionResult[i].line,
 			definitionResult[i].path, 'gtags-help.move');
-		definitionList.push(item);
+		definitionList.push(gtags);
 	}
 
 	vscode.window.createTreeView('result.definition', {
@@ -45,23 +45,23 @@ export async function searchGtags(historyResult?: string) {
 	});
 
 	for (let i = 0; i < referenceResult.length; i++) {
-		const item = new global.GlobalResult(referenceResult[i].description,
+		const gtags = new global.GlobalResult(referenceResult[i].description,
 			referenceResult[i].symbol, referenceResult[i].line,
 			referenceResult[i].path, 'gtags-help.move');
-		referenceList.push(item);
+		referenceList.push(gtags);
 	}
 
 	vscode.window.createTreeView('result.reference', {
 		treeDataProvider: new provider.ReferenceProvider(referenceList)
 	});
 
-	const item = new global.GlobalResult(definitionResult[0].symbol,
+	const gtags = new global.GlobalResult(definitionResult[0].symbol,
 		definitionResult[0].symbol, definitionResult[0].line,
 		definitionResult[0].path, 'gtags-help.history');
 
 	if (historyList.find(history => history.label === definitionResult[0].symbol))
 		historyList = historyList.filter(history => history.label !== definitionResult[0].symbol);
-	historyList.push(item);
+	historyList.push(gtags);
 
 	if (maxHistory > 0) {
 		historyList = historyList.reverse().slice(0, maxHistory).reverse();
@@ -72,4 +72,4 @@ export async function searchGtags(historyResult?: string) {
 	});
 }
 
-export function deactivate() {}
+export function deactivate() { }

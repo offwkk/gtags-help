@@ -24,7 +24,7 @@ export async function execCmd(command: string): Promise<string> {
     });
 }
 
-export function parseResult(result: string): Array<{symbol: string, line: number, path: string } | undefined>  {
+export function parseResult(result: string): Array<{ symbol: string, line: number, path: string } | undefined> {
     const lines = result.trimEnd().split('\n');
 
     return lines.map((line: string) => {
@@ -32,7 +32,7 @@ export function parseResult(result: string): Array<{symbol: string, line: number
             return;
 
         let groups = line.split(/ +/);
-        return { "symbol": groups[0], "line": Number(groups[1]), "path": groups[2]};
+        return { "symbol": groups[0], "line": Number(groups[1]), "path": groups[2] };
     });
 
 }
@@ -86,18 +86,18 @@ export async function findReference(historyResult?: string): Promise<global.Glob
 }
 
 export function moveGtags(gtags: global.GlobalResult) {
-	if (gtags.symbol === undefined)
-		return;
+    if (gtags.symbol === undefined)
+        return;
 
-	let path = gtags.fullPath;
+    let path = gtags.fullPath;
 
-	vscode.workspace.openTextDocument(path).then(document => {
-		vscode.window.showTextDocument(document).then(editor => {
-			var pos = new vscode.Position(gtags.line! - 1, 0);
-			editor.selection = new vscode.Selection(pos, pos);
-			editor.revealRange(new vscode.Range(pos, pos));
-		});
-	});
+    vscode.workspace.openTextDocument(path).then(document => {
+        vscode.window.showTextDocument(document).then(editor => {
+            var pos = new vscode.Position(gtags.line! - 1, 0);
+            editor.selection = new vscode.Selection(pos, pos);
+            editor.revealRange(new vscode.Range(pos, pos));
+        });
+    });
 }
 
 export function historyGtags(gtags: global.GlobalResult) {

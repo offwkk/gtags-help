@@ -32,28 +32,28 @@ export class Global {
 }
 
 export class GlobalResult extends vscode.TreeItem {
-	readonly symbol: string | undefined;
-	readonly line: number | undefined;
-	readonly path: string | undefined;
+    readonly symbol: string | undefined;
+    readonly line: number | undefined;
+    readonly path: string | undefined;
 
-	constructor(label: string, symbol: string, line: number,
-				path: string, command: string) {
-		super(label);
-		this.symbol = symbol;
-		this.line = line;
-		this.path = path;
-		this.command = {
-			command: command,
-			title: command + ".onClick",
-			arguments: [this]
-		}
-	}
+    constructor(label: string, symbol: string, line: number,
+            path: string, command: string) {
+        super(label);
+        this.symbol = symbol;
+        this.line = line;
+        this.path = path;
+        this.command = {
+            command: command,
+            title: command + ".onClick",
+            arguments: [this]
+        }
+    }
 
-	public get fullPath(): string {
+    public get fullPath(): string {
         return `${utils.getWorkspaceRootPath()}/${this.path}`;
     }
 
-	public get summary(): string {
+    public get summary(): string {
         return `${this.path}: ${this.line}`;
     }
 }

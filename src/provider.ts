@@ -34,11 +34,11 @@ export class ReferenceProvider implements vscode.TreeDataProvider<global.GlobalR
 }
 
 export class HistoryProvider implements vscode.TreeDataProvider<global.GlobalResult> {
-    historyList: global.GlobalResult[];
+	historyList: global.GlobalResult[];
 
-	constructor(history : global.GlobalResult[]) {
-        this.historyList = history;
-    }
+	constructor(history: global.GlobalResult[]) {
+		this.historyList = history;
+	}
 
 	getTreeItem(element: global.GlobalResult): vscode.TreeItem | Thenable<vscode.TreeItem> {
 		return element;
