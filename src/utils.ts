@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as global from "./global";
 import { exec, ExecException } from "child_process";
-import { findGlobal } from "./extension";
+import { searchGtags } from "./extension";
 
 export function getWorkspaceRootPath(): string {
     return vscode.workspace.workspaceFolders !==
@@ -35,29 +35,6 @@ export function parseResult(result: string): Array<{symbol: string, line: number
         return { "symbol": groups[0], "line": Number(groups[1]), "path": groups[2]};
     });
 
-}
-
-export function moveGlobal(item: global.GlobalResult) {
-	if (item.symbol === undefined)
-		return;
-
-	let path = item.fullPath;
-
-	vscode.workspace.openTextDocument(path).then(document => {
-		vscode.window.showTextDocument(document).then(editor => {
-			var pos = new vscode.Position(item.line! - 1, 0);
-			editor.selection = new vscode.Selection(pos, pos);
-			editor.revealRange(new vscode.Range(pos, pos));
-		});
-	});
-}
-
-export function moveHistoryGlobal(item: global.GlobalResult) {
-    if (item.symbol === undefined)
-        return;
-
-    findGlobal(item.symbol);
-    moveGlobal(item);
 }
 
 export async function findDefinition(historyResult?: string): Promise<global.Global[]> {
@@ -106,4 +83,27 @@ export async function findReference(historyResult?: string): Promise<global.Glob
     }
 
     return referenceGlobal;
+}
+
+export function moveGtags(gtags: global.GlobalResult) {
+	if (gtags.symbol === undefined)
+		return;
+
+	let path = gtags.fullPath;
+
+	vscode.workspace.openTextDocument(path).then(document => {
+		vscode.window.showTextDocument(document).then(editor => {
+			var pos = new vscode.Position(gtags.line! - 1, 0);
+			editor.selection = new vscode.Selection(pos, pos);
+			editor.revealRange(new vscode.Range(pos, pos));
+		});
+	});
+}
+
+export function historyGtags(gtags: global.GlobalResult) {
+    if (gtags.symbol === undefined)
+        return;
+
+    searchGtags(gtags.symbol);
+    moveGtags(gtags);
 }

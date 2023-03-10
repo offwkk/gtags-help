@@ -19,7 +19,7 @@
         {
           "id": "global-result",
           "title": "global result",
-          "icon": "resources/result-icon.png"
+          "icon": "resources/global_icon.png"
         }
       ]
     },
@@ -41,12 +41,8 @@
     },
     "commands": [
       {
-        "command": "gtags-help.helloWorld",
-        "title": "Hello World"
-      },
-      {
-        "command": "gtags-help.find",
-        "title": "find Global"
+        "command": "gtags-help.search",
+        "title": "search Gtags"
       }
     ],
     "configuration": [

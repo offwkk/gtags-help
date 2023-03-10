@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
-import * as Utils from "./utils"
-
+import * as utils from "./utils"
 
 let globalCmd = "global";
 
@@ -24,7 +23,7 @@ export class Global {
     }
 
     public get fullFilePath(): string {
-        return `${Utils.getWorkspaceRootPath()}/${this.filePath}`;
+        return `${utils.getWorkspaceRootPath()}/${this.filePath}`;
     }
 
     public get description(): string {
@@ -51,7 +50,7 @@ export class GlobalResult extends vscode.TreeItem {
 	}
 
 	public get fullPath(): string {
-        return `${Utils.getWorkspaceRootPath()}/${this.path}`;
+        return `${utils.getWorkspaceRootPath()}/${this.path}`;
     }
 
 	public get summary(): string {
