@@ -9,13 +9,13 @@ let maxHistory: number;
 export function activate(context: vscode.ExtensionContext) {
 
 	const config = vscode.workspace.getConfiguration("gtags-help");
-	maxHistory = config.get('maxHistory', 50);
+	maxHistory = config.get("maxHistory", 50);
 
 	vscode.workspace.onDidChangeConfiguration(event => {
 		let affected = event.affectsConfiguration("gtags-help.maxHistory");
 		if (affected) {
 			const config = vscode.workspace.getConfiguration("gtags-help");
-			maxHistory = config.get('maxHistory', 50);
+			maxHistory = config.get("maxHistory", 50);
 		}
 	});
 
@@ -24,9 +24,21 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('gtags-help.search', searchGtags);
 	vscode.commands.registerCommand('gtags-help.move', utils.moveGtags);
 	vscode.commands.registerCommand('gtags-help.history', utils.historyGtags);
+
+	vscode.workspace.onDidSaveTextDocument(() => {
+		utils.execCmd("ls | grep GTAGS")
+			.then(() => {
+				utils.updateGtags();
+			})
+			.catch(() => {
+				console.log("There is no Gtags to update.");
+			})
+	});
 }
 
 export async function searchGtags(historyResult?: string) {
+	vscode.commands.executeCommand('workbench.view.extension.gtags-help');
+
 	let definitionList: global.GlobalResult[] = [];
 	let referenceList: global.GlobalResult[] = [];
 
@@ -40,7 +52,7 @@ export async function searchGtags(historyResult?: string) {
 		definitionList.push(gtags);
 	}
 
-	vscode.window.createTreeView('result.definition', {
+	vscode.window.createTreeView('gtags-help.resultDef', {
 		treeDataProvider: new provider.DefinitionProvider(definitionList)
 	});
 
@@ -51,7 +63,7 @@ export async function searchGtags(historyResult?: string) {
 		referenceList.push(gtags);
 	}
 
-	vscode.window.createTreeView('result.reference', {
+	vscode.window.createTreeView('gtags-help.resultRef', {
 		treeDataProvider: new provider.ReferenceProvider(referenceList)
 	});
 
@@ -67,9 +79,9 @@ export async function searchGtags(historyResult?: string) {
 		historyList = historyList.reverse().slice(0, maxHistory).reverse();
 	}
 
-	vscode.window.createTreeView('result.history', {
+	vscode.window.createTreeView('gtags-help.resultHist', {
 		treeDataProvider: new provider.HistoryProvider(historyList)
 	});
 }
 
-export function deactivate() { }
+export function deactivate() {}

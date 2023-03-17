@@ -10,7 +10,7 @@ export function getWorkspaceRootPath(): string {
 
 export async function execCmd(command: string): Promise<string> {
     let dir = getWorkspaceRootPath();
-
+    console.log(command);
     return new Promise((resolve, reject) => {
         exec(command,
             { cwd: dir },
@@ -38,7 +38,7 @@ export function parseResult(result: string): Array<{ symbol: string, line: numbe
 }
 
 export async function findDefinition(historyResult?: string): Promise<global.Global[]> {
-    let globalCmd = global.getGlobal();
+    let globalCmd = global.getGlobalCmd();
     let definitionGlobal: global.Global[] = [];
     let word;
 
@@ -62,7 +62,7 @@ export async function findDefinition(historyResult?: string): Promise<global.Glo
 }
 
 export async function findReference(historyResult?: string): Promise<global.Global[]> {
-    let globalCmd = global.getGlobal();
+    let globalCmd = global.getGlobalCmd();
     let referenceGlobal: global.Global[] = [];
     let word;
 
@@ -106,4 +106,17 @@ export function historyGtags(gtags: global.GlobalResult) {
 
     searchGtags(gtags.symbol);
     moveGtags(gtags);
+}
+
+export function updateGtags() {
+    let config = vscode.workspace.getConfiguration("gtags-help");
+    let autoUpdate = config.get("autoUpdate", false);
+
+    if (autoUpdate) {
+        let globalCmd = global.getGlobalCmd();
+        const path = vscode.window.activeTextEditor!.document.uri.fsPath;
+
+        execCmd(globalCmd + " --single-update " + path);
+        vscode.window.showInformationMessage("Update Gtags!");
+    }
 }

@@ -1,10 +1,8 @@
 import * as vscode from "vscode";
 import * as utils from "./utils"
 
-let globalCmd = "global";
-
-export function getGlobal(): string {
-    return globalCmd;
+export function getGlobalCmd(): string {
+    return "global";
 }
 
 export class Global {

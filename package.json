@@ -1,7 +1,7 @@
 {
   "name": "gtags-help",
-  "displayName": "gtags-help",
-  "description": "",
+  "displayName": "Gtags Help",
+  "description": "Search gtags easily",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.75.0"
@@ -9,32 +9,29 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:gtags-help.helloWorld"
-  ],
   "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "global-result",
-          "title": "global result",
-          "icon": "resources/global_icon.png"
+          "id": "gtags-help",
+          "title": "Gtags Help",
+          "icon": "resources/global_search.png"
         }
       ]
     },
     "views": {
-      "global-result": [
+      "gtags-help": [
         {
-          "id": "result.definition",
+          "id": "gtags-help.resultDef",
           "name": "definition"
         },
         {
-          "id": "result.reference",
+          "id": "gtags-help.resultRef",
           "name": "reference"
         },
         {
-          "id": "result.history",
+          "id": "gtags-help.resultHist",
           "name": "history"
         }
       ]
@@ -45,6 +42,14 @@
         "title": "search Gtags"
       }
     ],
+    "keybindings": [
+      {
+        "command": "gtags-help.search",
+        "key": "ctrl+f10",
+        "mac": "cmd+f10",
+        "when": "editorTextFocus"
+      }
+    ],
     "configuration": [
       {
         "title": "gtags max history",
@@ -52,7 +57,16 @@
           "gtags-help.maxHistory": {
             "type": "integer",
             "default": 50,
-            "description": "Maximum number of recent gtags history"
+            "description": "Maximum number of recent gtags history."
+          }
+        }
+      }, {
+        "title": "gtags auto update",
+        "properties": {
+          "gtags-help.autoUpdate": {
+            "type": "boolean",
+            "default": false,
+            "description": "Update Gtags when file is saved."
           }
         }
       }]
