@@ -26,13 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('gtags-help.history', utils.historyGtags);
 
 	vscode.workspace.onDidSaveTextDocument(() => {
-		utils.execCmd("ls | grep GTAGS")
-			.then(() => {
-				utils.updateGtags();
-			})
-			.catch(() => {
-				console.log("There is no Gtags to update.");
-			})
+		utils.updateGtags();
 	});
 }
 

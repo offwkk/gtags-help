@@ -10,7 +10,7 @@ export function getWorkspaceRootPath(): string {
 
 export async function execCmd(command: string): Promise<string> {
     let dir = getWorkspaceRootPath();
-    console.log(command);
+
     return new Promise((resolve, reject) => {
         exec(command,
             { cwd: dir },
@@ -108,7 +108,7 @@ export function historyGtags(gtags: global.GlobalResult) {
     moveGtags(gtags);
 }
 
-export function updateGtags() {
+export async function updateGtags() {
     let config = vscode.workspace.getConfiguration("gtags-help");
     let autoUpdate = config.get("autoUpdate", false);
 
@@ -116,7 +116,12 @@ export function updateGtags() {
         let globalCmd = global.getGlobalCmd();
         const path = vscode.window.activeTextEditor!.document.uri.fsPath;
 
-        execCmd(globalCmd + " --single-update " + path);
-        vscode.window.showInformationMessage("Update Gtags!");
+        await execCmd(globalCmd + " --single-update " + path)
+            .then(() => {
+                vscode.window.showInformationMessage("Update Gtags done!");
+            })
+            .catch(() => {
+                vscode.window.showErrorMessage("Update Gtags failed!");
+            });
     }
 }
